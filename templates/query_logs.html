@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Query Logs - Delhi High Court{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h4 class="card-title mb-0">
+            <i class="fas fa-history me-2"></i>
+            Query Logs
+        </h4>
+    </div>
+    <div class="card-body">
+        {% if logs %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Case Type</th>
+                        <th>Case Number</th>
+                        <th>Filing Year</th>
+                        <th>IP Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs[-50:] %}
+                    <tr>
+                        <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        <td><span class="badge bg-primary">{{ log.case_type }}</span></td>
+                        <td>{{ log.case_number }}</td>
+                        <td>{{ log.filing_year }}</td>
+                        <td><code>{{ log.ip_address }}</code></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <p class="text-muted">Showing last 50 queries</p>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-inbox text-muted" style="font-size: 3rem;"></i>
+            <p class="lead text-muted mt-3">No query logs available</p>
+            <a href="{{ url_for('index') }}" class="btn btn-primary">
+                <i class="fas fa-search me-2"></i>Start Searching Cases
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

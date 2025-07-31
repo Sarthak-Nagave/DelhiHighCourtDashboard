@@ -1,0 +1,31 @@
+# Core Framework
+Flask==2.3.3
+Werkzeug==2.3.7
+
+# Database
+Flask-SQLAlchemy==3.0.5
+SQLAlchemy==2.0.21
+psycopg2-binary==2.9.7
+
+# Web Scraping
+requests==2.32.4
+beautifulsoup4==4.13.4
+trafilatura==1.6.3
+
+# Image Processing & OCR
+Pillow==10.0.1
+pytesseract==0.3.13
+
+# PDF Generation
+reportlab==4.0.4
+
+# Email Validation
+email-validator==2.0.0
+
+# Server
+gunicorn==21.2.0
+
+# Development & Testing (optional)
+pytest==7.4.2
+pytest-flask==1.2.0
+pytest-cov==4.1.0

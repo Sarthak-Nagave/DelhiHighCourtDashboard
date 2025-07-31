@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}Case Search - Delhi High Court{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Header Card -->
+        <div class="card mb-4 border-primary">
+            <div class="card-header bg-primary text-white">
+                <h4 class="card-title mb-0">
+                    <i class="fas fa-search me-2"></i>
+                    Delhi High Court Case Search
+                </h4>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    Search for case information by entering the case type, case number, and filing year.
+                    This system provides access to case details, party information, and court orders.
+                </p>
+            </div>
+        </div>
+
+        <!-- Search Form -->
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-file-alt me-2"></i>
+                    Case Search Form
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('search_case') }}" id="searchForm">
+                    <div class="row">
+                        <!-- Case Type -->
+                        <div class="col-md-6 mb-3">
+                            <label for="case_type" class="form-label">
+                                <i class="fas fa-list me-1"></i>Case Type <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select" id="case_type" name="case_type" required>
+                                <option value="">Select Case Type</option>
+                                {% for case_type in case_types %}
+                                <option value="{{ case_type }}">{{ case_type }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Choose the type of case from the dropdown</div>
+                        </div>
+
+                        <!-- Case Number -->
+                        <div class="col-md-6 mb-3">
+                            <label for="case_number" class="form-label">
+                                <i class="fas fa-hashtag me-1"></i>Case Number <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="case_number" name="case_number" 
+                                   placeholder="e.g., 15234" maxlength="10" required>
+                            <div class="form-text">Enter the case number (numbers only)</div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Filing Year -->
+                        <div class="col-md-6 mb-3">
+                            <label for="filing_year" class="form-label">
+                                <i class="fas fa-calendar me-1"></i>Filing Year <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select" id="filing_year" name="filing_year" required>
+                                <option value="">Select Filing Year</option>
+                                {% for year in range(2025, 2014, -1) %}
+                                <option value="{{ year }}" {% if year == 2024 %}selected{% endif %}>{{ year }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Select the year when the case was filed</div>
+                        </div>
+
+                        <!-- Search Button -->
+                        <div class="col-md-6 mb-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary btn-lg w-100" id="searchBtn">
+                                <i class="fas fa-search me-2"></i>Search Case
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Sample Cases Info -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Sample Cases Available (Mock Mode)
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Demo Mode:</strong> The app is running in mock mode with sample data. Try these exact case numbers:
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>W.P.(C) 15234/2024</strong>
+                                    <br><small class="text-muted">Rajesh Kumar Sharma vs Union of India</small>
+                                </div>
+                                <span class="badge bg-primary rounded-pill">Pending</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>W.P.(C) 4157/2023</strong>
+                                    <br><small class="text-muted">Sunita Devi vs State NCT Delhi</small>
+                                </div>
+                                <span class="badge bg-info rounded-pill">Notice Issued</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>CRL.A. 892/2023</strong>
+                                    <br><small class="text-muted">Amit Singh vs State NCT Delhi</small>
+                                </div>
+                                <span class="badge bg-warning rounded-pill">Reserved</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>CRL.M.A. 128/2021</strong>
+                                    <br><small class="text-muted">Vinod Kumar vs State NCT Delhi</small>
+                                </div>
+                                <span class="badge bg-warning rounded-pill">Reserved for Orders</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>FAO(OS) 445/2024</strong>
+                                    <br><small class="text-muted">Global Technologies vs Indian Software</small>
+                                </div>
+                                <span class="badge bg-info rounded-pill">Mediation</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>MAT.APP. 789/2023</strong>
+                                    <br><small class="text-muted">Suresh Gupta vs Delhi Transport Corp</small>
+                                </div>
+                                <span class="badge bg-secondary rounded-pill">Documents Pending</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="alert alert-warning mt-3">
+                    <strong>Note:</strong> These are the only cases available in mock mode. Any other case numbers will show "Case not found". 
+                    To enable real scraping from Delhi High Court website, set <code>USE_MOCK_SCRAPER=false</code> in environment variables.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('searchForm').addEventListener('submit', function() {
+    const searchBtn = document.getElementById('searchBtn');
+    searchBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Searching...';
+    searchBtn.disabled = true;
+});
+
+// Auto-format case number input
+document.getElementById('case_number').addEventListener('input', function(e) {
+    // Allow only numbers
+    e.target.value = e.target.value.replace(/[^0-9]/g, '');
+});
+</script>
+{% endblock %}

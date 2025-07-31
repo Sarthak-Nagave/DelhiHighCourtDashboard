@@ -1,0 +1,156 @@
+/* Custom styles for Delhi High Court Case Management Dashboard */
+
+:root {
+    --court-primary: #1e3a8a;
+    --court-secondary: #64748b;
+    --court-accent: #dc2626;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Custom badge styles */
+.badge-lg {
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+}
+
+/* Timeline styles for case details */
+.timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 1rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--bs-border-color);
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -1.75rem;
+    top: 0.25rem;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    border: 2px solid var(--bs-body-bg);
+}
+
+.timeline-content h6 {
+    color: var(--bs-primary);
+    font-weight: 600;
+}
+
+/* Card hover effects */
+.card {
+    transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* Button loading state */
+.btn:disabled {
+    opacity: 0.6;
+}
+
+/* Form enhancements */
+.form-select:focus,
+.form-control:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Status badge colors */
+.bg-pending {
+    background-color: #fbbf24 !important;
+}
+
+.bg-reserved {
+    background-color: #f97316 !important;
+}
+
+.bg-granted {
+    background-color: #10b981 !important;
+}
+
+/* Responsive table */
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+}
+
+/* Loading spinner */
+.spinner {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid var(--bs-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Print styles */
+@media print {
+    .navbar,
+    .card-header,
+    .btn,
+    footer {
+        display: none !important;
+    }
+    
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+}
+
+/* Court-specific styling */
+.court-header {
+    background: linear-gradient(135deg, var(--court-primary) 0%, var(--court-secondary) 100%);
+}
+
+.case-number {
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+}
+
+/* Alert styling */
+.alert {
+    border-left: 4px solid;
+}
+
+.alert-info {
+    border-left-color: var(--bs-info);
+}
+
+.alert-warning {
+    border-left-color: var(--bs-warning);
+}
+
+.alert-danger {
+    border-left-color: var(--bs-danger);
+}
+
+.alert-success {
+    border-left-color: var(--bs-success);
+}
