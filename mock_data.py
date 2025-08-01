@@ -1,20 +1,18 @@
 """Mock data for Delhi High Court cases"""
 
-# Case types available in Delhi High Court
 CASE_TYPES = [
-    "W.P.(C)",  # Writ Petition (Civil)
-    "CRL.A.",   # Criminal Appeal
-    "FAO(OS)",  # First Appeal from Original Side
-    "CRL.M.A.", # Criminal Miscellaneous Application
-    "MAT.APP.", # Matter Appeal
-    "CO.APP.",  # Company Appeal
-    "CS(OS)",   # Civil Suit (Original Side)
-    "I.A.",     # Interim Application
-    "CRL.REV.P.", # Criminal Revision Petition
-    "O.M.P.(I)", # Original Miscellaneous Petition (I)
+    "W.P.(C)",  
+    "CRL.A.",   
+    "FAO(OS)",  
+    "CRL.M.A.", 
+    "MAT.APP.", 
+    "CO.APP.",  
+    "CS(OS)",   
+    "I.A.",    
+    "CRL.REV.P.", 
+    "O.M.P.(I)", 
 ]
 
-# Mock case database
 MOCK_CASES = {
     "W.P.(C).15234.2024": {
         "case_number": "15234",
@@ -147,5 +145,4 @@ MOCK_CASES = {
     }
 }
 
-# Years available for filing
 FILING_YEARS = list(range(2015, 2026))

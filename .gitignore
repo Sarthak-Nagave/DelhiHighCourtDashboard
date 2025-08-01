@@ -1,4 +1,3 @@
-# Ignore Python cache and virtual environments
 __pycache__/
 *.pyc
 *.pyo
@@ -10,17 +9,13 @@ ENV/
 .idea/
 .vscode/
 
-# Ignore database files
 *.db
 *.sqlite3
 instance/
 
-# Ignore logs and debug files
 *.log
 
-# Ignore environment configs
 .env
 
-# Ignore platform-specific files
 .DS_Store
 Thumbs.db

@@ -5,7 +5,6 @@
 {% block content %}
 <div class="row">
     <div class="col-lg-8">
-        <!-- Case Header -->
         <div class="card mb-4 border-primary">
             <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                 <h4 class="card-title mb-0">
@@ -30,7 +29,6 @@
             </div>
         </div>
 
-        <!-- Parties Information -->
         <div class="card mb-4">
             <div class="card-header">
                 <h5 class="card-title mb-0">
@@ -56,7 +54,6 @@
             </div>
         </div>
 
-        <!-- Latest Order -->
         <div class="card mb-4">
             <div class="card-header">
                 <h5 class="card-title mb-0">
@@ -74,9 +71,7 @@
         </div>
     </div>
 
-    <!-- Sidebar -->
     <div class="col-lg-4">
-        <!-- Actions Card -->
         <div class="card mb-4">
             <div class="card-header">
                 <h5 class="card-title mb-0">
@@ -98,7 +93,6 @@
             </div>
         </div>
 
-        <!-- Case Information -->
         <div class="card mb-4">
             <div class="card-header">
                 <h5 class="card-title mb-0">
@@ -132,7 +126,6 @@
             </div>
         </div>
 
-        <!-- Important Dates -->
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0">
@@ -165,7 +158,6 @@
 
 {% block scripts %}
 <script>
-// Add click tracking for PDF download
 document.querySelector('[href*="download_pdf"]').addEventListener('click', function() {
     console.log('PDF download initiated for case: {{ case_key }}');
 });

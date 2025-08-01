@@ -1,9 +1,3 @@
-#!/usr/bin/env python3
-"""
-Test script for the enhanced CAPTCHA bypass and SQLite logging system
-This script demonstrates the comprehensive logging capabilities.
-"""
-
 import os
 import sys
 import sqlite3
@@ -15,23 +9,20 @@ def test_sqlite_logging():
     """Test the SQLite logging system"""
     print("🔍 Testing SQLite Logging System")
     print("=" * 50)
-    
-    # Initialize logger
+
     db_path = "test_court_scraper.db"
     if os.path.exists(db_path):
-        os.remove(db_path)  # Clean start
+        os.remove(db_path)  
     
     logger = SQLiteLogger(db_path)
     print(f"✓ Database initialized: {db_path}")
     
-    # Test query logging
     query_id = logger.log_query(
         "W.P.(C)", "15234", "2024", 
         "192.168.1.100", "Mozilla/5.0...", "test_session_123"
     )
     print(f"✓ Query logged with ID: {query_id}")
     
-    # Test response logging
     logger.log_response(
         query_id, "https://example.com", "POST",
         {"User-Agent": "Mozilla/5.0..."}, {"case_type": "W.P.(C)"},
@@ -41,14 +32,12 @@ def test_sqlite_logging():
     )
     print("✓ Response logged")
     
-    # Test CAPTCHA logging
     logger.log_captcha_attempt(
         query_id, "https://example.com/captcha.jpg", "ABC123",
         True, "ocr_preprocessing_0", 0.85, 2300
     )
     print("✓ CAPTCHA attempt logged")
     
-    # Test viewstate logging
     logger.log_viewstate_tokens(query_id, {
         "__VIEWSTATE": "/wEPDwUKLTI2MTQ5NDEzNQ==",
         "__VIEWSTATEGENERATOR": "CA0B0334",
@@ -65,7 +54,6 @@ def analyze_logged_data(db_path):
     print("=" * 50)
     
     with sqlite3.connect(db_path) as conn:
-        # Query analysis
         cursor = conn.execute("""
             SELECT case_type, case_number, filing_year, success, 
                    response_time_ms, captcha_required, captcha_solved
@@ -79,8 +67,7 @@ def analyze_logged_data(db_path):
             print(f"   • {query[0]} {query[1]}/{query[2]} - "
                   f"Success: {bool(query[3])}, Time: {query[4]}ms, "
                   f"CAPTCHA: {bool(query[5])}")
-        
-        # Response analysis
+
         cursor = conn.execute("""
             SELECT request_method, response_status, LENGTH(raw_html) as html_size
             FROM scraper_responses
@@ -92,8 +79,7 @@ def analyze_logged_data(db_path):
         for response in responses:
             print(f"   • {response[0]} - Status: {response[1]}, "
                   f"HTML Size: {response[2]} bytes")
-        
-        # CAPTCHA analysis
+
         cursor = conn.execute("""
             SELECT method_used, success, confidence_score, processing_time_ms
             FROM captcha_attempts
@@ -105,8 +91,7 @@ def analyze_logged_data(db_path):
         for captcha in captchas:
             print(f"   • Method: {captcha[0]}, Success: {bool(captcha[1])}, "
                   f"Confidence: {captcha[2]:.2f}, Time: {captcha[3]}ms")
-        
-        # Token analysis
+
         cursor = conn.execute("""
             SELECT LENGTH(viewstate) as vs_len, LENGTH(csrf_token) as csrf_len
             FROM viewstate_tokens
@@ -122,16 +107,14 @@ def test_real_scraper_with_logging():
     """Test the real scraper with comprehensive logging"""
     print("\n🕷️ Testing Real Scraper with Logging")
     print("=" * 50)
-    
-    # Initialize scraper with logging
+ 
     db_path = "real_scraper_test.db"
     if os.path.exists(db_path):
         os.remove(db_path)
     
     scraper = DelhiHighCourtScraper(db_path)
     print(f"✓ Real scraper initialized with logging: {db_path}")
-    
-    # Note: This would attempt real scraping - commented for safety
+  
     print("⚠️  Real scraping test skipped (would access actual court website)")
     print("   To test real scraping, set USE_MOCK_SCRAPER=false in environment")
     
@@ -143,8 +126,7 @@ def test_mock_scraper_compatibility():
     print("=" * 50)
     
     mock_scraper = MockScraper()
-    
-    # Test mock data access
+
     success, case_data, error = mock_scraper.search_case("W.P.(C)", "15234", "2024")
     
     if success:
@@ -207,19 +189,10 @@ def main():
     print("=" * 60)
     
     try:
-        # Test SQLite logging
         db_path = test_sqlite_logging()
-        
-        # Analyze the logged data
         analyze_logged_data(db_path)
-        
-        # Test real scraper initialization
         real_db = test_real_scraper_with_logging()
-        
-        # Test mock scraper compatibility
         test_mock_scraper_compatibility()
-        
-        # Show usage examples
         generate_usage_examples()
         
         print("\n✅ All Tests Completed Successfully!")

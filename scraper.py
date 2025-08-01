@@ -1,26 +1,3 @@
-"""
-Web scraper for Delhi High Court case data with comprehensive CAPTCHA bypass and logging
-
-CAPTCHA Bypass Strategy:
-1. OCR-based automatic solving using Tesseract
-2. Session persistence to avoid repeated CAPTCHAs
-3. View-state token extraction and preservation
-4. Fallback to manual input when OCR fails
-5. Third-party CAPTCHA solving service integration
-
-View-State Token Handling:
-- Automatic extraction of __VIEWSTATE, __VIEWSTATEGENERATOR, __EVENTVALIDATION
-- Dynamic form field detection and preservation
-- CSRF token management
-- Session cookie persistence
-
-Logging Strategy:
-- SQLite database for all queries and raw HTML responses
-- Comprehensive error logging and retry tracking
-- CAPTCHA solving success rate monitoring
-- Performance metrics and timing data
-"""
-
 import requests
 import json
 import re
@@ -39,7 +16,6 @@ import pytesseract
 import hashlib
 import os
 
-# Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
@@ -55,7 +31,6 @@ class SQLiteLogger:
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             
-            # Create queries table
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS scraper_queries (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -78,7 +53,6 @@ class SQLiteLogger:
                 )
             ''')
             
-            # Create raw HTML responses table
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS scraper_responses (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -99,7 +73,6 @@ class SQLiteLogger:
                 )
             ''')
             
-            # Create CAPTCHA attempts table
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS captcha_attempts (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -118,7 +91,6 @@ class SQLiteLogger:
                 )
             ''')
             
-            # Create view-state tokens table
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS viewstate_tokens (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -227,8 +199,7 @@ class DelhiHighCourtScraper:
         self.session = requests.Session()
         self.logger = SQLiteLogger(db_path)
         self.current_query_id = None
-        
-        # Enhanced headers to mimic real browser
+      
         self.session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
@@ -243,7 +214,6 @@ class DelhiHighCourtScraper:
             'Cache-Control': 'max-age=0'
         })
         
-        # CAPTCHA solving configuration
         self.captcha_config = {
             'ocr_config': '--psm 8 -c tessedit_char_whitelist=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
             'image_preprocessing': True,
@@ -251,7 +221,6 @@ class DelhiHighCourtScraper:
             'confidence_threshold': 0.7
         }
         
-        # Initialize session
         self._initialize_session()
     
     def _initialize_session(self):
@@ -267,7 +236,6 @@ class DelhiHighCourtScraper:
     def _get_captcha_image(self, soup) -> Optional[str]:
         """Extract CAPTCHA image from the page"""
         try:
-            # Look for CAPTCHA image
             captcha_img = soup.find('img', {'alt': 'captcha'}) or soup.find('img', src=re.compile(r'captcha', re.I))
             if captcha_img:
                 img_src = captcha_img.get('src')
@@ -284,30 +252,24 @@ class DelhiHighCourtScraper:
         Returns multiple processed versions to try
         """
         processed_images = []
-        
-        # Original grayscale
+      
         gray = image.convert('L')
         processed_images.append(gray)
         
-        # Enhanced contrast
         enhancer = ImageEnhance.Contrast(gray)
         high_contrast = enhancer.enhance(2.0)
         processed_images.append(high_contrast)
         
-        # Brightness adjustment
         enhancer = ImageEnhance.Brightness(gray)
         bright = enhancer.enhance(1.5)
         processed_images.append(bright)
-        
-        # Sharpening
+    
         sharp = gray.filter(ImageFilter.SHARPEN)
         processed_images.append(sharp)
-        
-        # Edge enhancement
+      
         edge = gray.filter(ImageFilter.EDGE_ENHANCE)
         processed_images.append(edge)
         
-        # Noise reduction
         smooth = gray.filter(ImageFilter.SMOOTH)
         processed_images.append(smooth)
         
@@ -321,21 +283,16 @@ class DelhiHighCourtScraper:
         start_time = time.time()
         
         try:
-            # Download CAPTCHA image
             response = self.session.get(captcha_url)
             if response.status_code != 200:
                 return None, 0.0
-            
-            # Open image with PIL
+   
             image = Image.open(io.BytesIO(response.content))
-            
-            # Try multiple preprocessing approaches
             processed_images = self._preprocess_captcha_image(image)
             results = []
             
             for i, processed_img in enumerate(processed_images):
                 try:
-                    # Multiple OCR configurations
                     configs = [
                         '--psm 8 -c tessedit_char_whitelist=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ',
                         '--psm 7 -c tessedit_char_whitelist=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ',
@@ -348,23 +305,20 @@ class DelhiHighCourtScraper:
                         text = pytesseract.image_to_string(processed_img, config=config)
                         text = re.sub(r'[^A-Za-z0-9]', '', text.strip())
                         
-                        if len(text) >= 3 and len(text) <= 10:  # Reasonable CAPTCHA length
-                            # Simple confidence scoring based on character consistency
-                            confidence = min(1.0, len(text) / 6.0)  # Prefer 6-char CAPTCHAs
+                        if len(text) >= 3 and len(text) <= 10:  
+                            confidence = min(1.0, len(text) / 6.0)  
                             results.append((text, confidence, f"preprocessing_{i}_config_{configs.index(config)}"))
                 
                 except Exception as e:
                     logger.debug(f"OCR attempt failed for preprocessing {i}: {str(e)}")
                     continue
-            
-            # Sort by confidence and return best result
+
             if results:
                 results.sort(key=lambda x: x[1], reverse=True)
                 best_result = results[0]
                 
                 processing_time = int((time.time() - start_time) * 1000)
                 
-                # Log all attempts for analysis
                 if self.current_query_id:
                     for result, confidence, method in results:
                         self.logger.log_captcha_attempt(
@@ -387,12 +341,8 @@ class DelhiHighCourtScraper:
         Solve CAPTCHA using third-party service (implement as needed)
         This is a placeholder for services like 2captcha, AntiCaptcha, etc.
         """
-        # Example implementation for 2captcha or similar service
-        # service_api_key = os.getenv('CAPTCHA_SERVICE_API_KEY')
-        # if not service_api_key:
-        #     return None
         
-        # TODO: Implement third-party CAPTCHA solving service
+        # TODO: 
         logger.info("Third-party CAPTCHA service not configured")
         return None
     
@@ -402,19 +352,16 @@ class DelhiHighCourtScraper:
         """
         logger.info(f"Attempting to solve CAPTCHA: {captcha_url}")
         
-        # Strategy 1: OCR-based solving
         ocr_result, confidence = self._solve_captcha_with_ocr(captcha_url)
         if ocr_result and confidence >= self.captcha_config['confidence_threshold']:
             logger.info(f"CAPTCHA solved with OCR: {ocr_result} (confidence: {confidence:.2f})")
             return ocr_result
         
-        # Strategy 2: Try third-party service
         service_result = self._solve_captcha_with_service(captcha_url)
         if service_result:
             logger.info(f"CAPTCHA solved with service: {service_result}")
             return service_result
         
-        # Strategy 3: Return best OCR attempt even if low confidence
         if ocr_result:
             logger.warning(f"Using low-confidence OCR result: {ocr_result} (confidence: {confidence:.2f})")
             return ocr_result
@@ -430,14 +377,11 @@ class DelhiHighCourtScraper:
         form_data = {}
         
         try:
-            # Find all possible forms
             forms = soup.find_all('form')
             if not forms:
-                # Look for form-like containers
                 forms = soup.find_all('div', {'id': re.compile(r'.*form.*', re.I)})
             
             for form in forms:
-                # Extract all input fields
                 inputs = form.find_all('input')
                 for inp in inputs:
                     name = inp.get('name')
@@ -447,11 +391,9 @@ class DelhiHighCourtScraper:
                     if name:
                         form_data[name] = value
                         
-                        # Log important tokens
                         if any(token in name.lower() for token in ['viewstate', 'token', 'csrf', 'validation']):
                             logger.debug(f"Found token field: {name} = {value[:50]}..." if len(value) > 50 else f"Found token field: {name} = {value}")
-                
-                # Extract select fields
+          
                 selects = form.find_all('select')
                 for select in selects:
                     name = select.get('name')
@@ -460,21 +402,17 @@ class DelhiHighCourtScraper:
                         if selected_option:
                             form_data[name] = selected_option.get('value', '')
                         else:
-                            # Default to first option
                             first_option = select.find('option')
                             if first_option:
                                 form_data[name] = first_option.get('value', '')
             
-            # Look for meta CSRF tokens
             csrf_meta = soup.find('meta', {'name': re.compile(r'csrf.*token', re.I)})
             if csrf_meta:
                 form_data['csrf_token'] = csrf_meta.get('content', '')
             
-            # Look for JavaScript-embedded tokens
             scripts = soup.find_all('script')
             for script in scripts:
                 if script.string:
-                    # Look for common token patterns in JavaScript
                     token_patterns = [
                         r'token["\']?\s*[:=]\s*["\']([^"\']+)["\']',
                         r'csrf["\']?\s*[:=]\s*["\']([^"\']+)["\']',
@@ -484,10 +422,9 @@ class DelhiHighCourtScraper:
                     for pattern in token_patterns:
                         matches = re.findall(pattern, script.string, re.I)
                         for match in matches:
-                            if len(match) > 10:  # Reasonable token length
+                            if len(match) > 10:  
                                 form_data[f'js_token_{len(form_data)}'] = match
-            
-            # Look for data attributes with tokens
+          
             token_elements = soup.find_all(attrs={'data-token': True})
             for elem in token_elements:
                 token_value = elem.get('data-token')
@@ -495,8 +432,7 @@ class DelhiHighCourtScraper:
                     form_data['data_token'] = token_value
             
             logger.info(f"Extracted {len(form_data)} form fields and tokens")
-            
-            # Log tokens to database
+       
             if self.current_query_id and form_data:
                 self.logger.log_viewstate_tokens(self.current_query_id, form_data)
         
@@ -511,7 +447,6 @@ class DelhiHighCourtScraper:
         case_data = {}
         
         try:
-            # Look for table containing case data
             tables = soup.find_all('table')
             
             for table in tables:
@@ -519,12 +454,10 @@ class DelhiHighCourtScraper:
                 for row in rows:
                     cells = row.find_all(['td', 'th'])
                     if len(cells) >= 2:
-                        # Extract data from table rows
                         for i in range(0, len(cells)-1, 2):
                             key = cells[i].get_text(strip=True).lower()
                             value = cells[i+1].get_text(strip=True)
                             
-                            # Map common fields
                             if 'case' in key and 'no' in key:
                                 case_data['case_number'] = value
                             elif 'title' in key or 'parties' in key:
@@ -546,7 +479,6 @@ class DelhiHighCourtScraper:
                             elif 'order' in key or 'judgment' in key:
                                 case_data['latest_order'] = value
             
-            # Look for PDF links
             pdf_links = soup.find_all('a', href=re.compile(r'\.pdf', re.I))
             if pdf_links:
                 case_data['pdf_links'] = []
@@ -559,7 +491,6 @@ class DelhiHighCourtScraper:
                             'text': link.get_text(strip=True)
                         })
                 
-                # Set primary PDF link
                 if case_data['pdf_links']:
                     case_data['pdf_link'] = case_data['pdf_links'][0]['url']
         
@@ -585,7 +516,6 @@ class DelhiHighCourtScraper:
             Tuple[bool, Dict, str]: (success, case_data, error_message)
         """
         
-        # Initialize query logging
         session_id = hashlib.md5(f"{time.time()}".encode()).hexdigest()[:8]
         self.current_query_id = self.logger.log_query(
             case_type, case_number, filing_year, ip_address, user_agent, session_id
@@ -596,12 +526,10 @@ class DelhiHighCourtScraper:
         for attempt in range(max_retries):
             try:
                 logger.info(f"Searching case: {case_type} {case_number}/{filing_year} (Attempt {attempt + 1}/{max_retries})")
-                
-                # Step 1: Get the search page
+
                 step_start = time.time()
                 response = self.session.get(self.case_search_url, timeout=30)
                 
-                # Log the initial page request
                 self.logger.log_response(
                     self.current_query_id, self.case_search_url, 'GET',
                     dict(self.session.headers), {}, response.status_code,
@@ -618,11 +546,9 @@ class DelhiHighCourtScraper:
                 
                 soup = BeautifulSoup(response.text, 'html.parser')
                 
-                # Step 2: Extract form data and tokens
                 form_data = self._extract_form_data(soup)
                 logger.info(f"Extracted {len(form_data)} form fields")
                 
-                # Step 3: Handle CAPTCHA if present
                 captcha_url = self._get_captcha_image(soup)
                 captcha_solution = None
                 captcha_required = captcha_url is not None
@@ -632,10 +558,8 @@ class DelhiHighCourtScraper:
                     captcha_solution = self._solve_captcha(captcha_url)
                     if not captcha_solution:
                         logger.warning("Failed to solve CAPTCHA, attempting search anyway")
-                        # Continue with empty CAPTCHA - some sites accept it
                         captcha_solution = ""
-                
-                # Step 4: Prepare search request data
+
                 search_data = form_data.copy()
                 search_data.update({
                     'case_type': case_type,
@@ -643,23 +567,18 @@ class DelhiHighCourtScraper:
                     'filing_year': filing_year,
                 })
                 
-                # Add CAPTCHA solution if required
                 if captcha_required and captcha_solution:
-                    # Common CAPTCHA field names
                     captcha_fields = ['captcha', 'captcha_code', 'security_code', 'verification_code']
                     for field in captcha_fields:
                         if field in form_data or any(field in key.lower() for key in form_data.keys()):
                             search_data[field] = captcha_solution
                             break
                     else:
-                        # If no specific field found, try common names
                         search_data['captcha'] = captcha_solution
-                
-                # Step 5: Submit search request
+
                 logger.info("Submitting search request")
                 search_start = time.time()
-                
-                # Determine the search URL and method
+
                 search_url = self.case_search_url
                 form = soup.find('form')
                 if form:
@@ -669,8 +588,7 @@ class DelhiHighCourtScraper:
                     method = form.get('method', 'POST').upper()
                 else:
                     method = 'POST'
-                
-                # Set appropriate headers for form submission
+ 
                 search_headers = {
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'Referer': self.case_search_url,
@@ -687,16 +605,14 @@ class DelhiHighCourtScraper:
                     )
                 
                 search_time = int((time.time() - search_start) * 1000)
-                
-                # Log the search response
+
                 self.logger.log_response(
                     self.current_query_id, search_url, method,
                     {**dict(self.session.headers), **search_headers}, search_data,
                     search_response.status_code, dict(search_response.headers),
                     search_response.text, processing_time=search_time
                 )
-                
-                # Step 6: Parse results
+
                 if search_response.status_code == 200:
                     case_data = self._parse_case_details(search_response.text)
                     
@@ -704,7 +620,6 @@ class DelhiHighCourtScraper:
                         total_time = int((time.time() - start_time) * 1000)
                         logger.info(f"Successfully found case data in {total_time}ms")
                         
-                        # Update query success status
                         with sqlite3.connect(self.logger.db_path) as conn:
                             conn.execute('''
                                 UPDATE scraper_queries 
@@ -716,7 +631,6 @@ class DelhiHighCourtScraper:
                         
                         return True, case_data, ""
                     else:
-                        # Check if this is a "case not found" scenario
                         if any(phrase in search_response.text.lower() for phrase in 
                                ['not found', 'no data', 'no record', 'invalid case', 'does not exist']):
                             error_msg = "Case not found in court records"
@@ -725,7 +639,7 @@ class DelhiHighCourtScraper:
                         else:
                             logger.warning("No case data found, but no explicit error message")
                             if attempt < max_retries - 1:
-                                time.sleep(2 ** attempt)  # Exponential backoff
+                                time.sleep(2 ** attempt)  
                                 continue
                 else:
                     error_msg = f"Search request failed. Status: {search_response.status_code}"
@@ -758,11 +672,9 @@ class DelhiHighCourtScraper:
                     time.sleep(2 ** attempt)
                     continue
                 return False, {}, error_msg
-        
-        # All attempts failed
+
         total_time = int((time.time() - start_time) * 1000)
         
-        # Update query failure status
         with sqlite3.connect(self.logger.db_path) as conn:
             conn.execute('''
                 UPDATE scraper_queries 
@@ -1049,7 +961,6 @@ class MockScraper:
     def search_case(self, case_type: str, case_number: str, filing_year: str) -> Tuple[bool, Dict, str]:
         """Mock search that returns predefined data"""
         
-        # Simulate network delay
         time.sleep(random.uniform(1, 3))
         
         case_key = f"{case_type}.{case_number}.{filing_year}"

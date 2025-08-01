@@ -1,17 +1,12 @@
-// Main JavaScript file for Delhi High Court Case Management Dashboard
-
 document.addEventListener('DOMContentLoaded', function() {
-    // Update current time in navbar
     updateTime();
     setInterval(updateTime, 1000);
     
-    // Initialize tooltips
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
-    
-    // Auto-dismiss alerts after 5 seconds
+      
     setTimeout(function() {
         var alerts = document.querySelectorAll('.alert');
         alerts.forEach(function(alert) {
@@ -39,7 +34,6 @@ function updateTime() {
     }
 }
 
-// Form validation enhancement
 function validateSearchForm() {
     const caseType = document.getElementById('case_type').value;
     const caseNumber = document.getElementById('case_number').value;
@@ -70,22 +64,20 @@ function showAlert(message, type = 'info') {
     const container = document.querySelector('.container');
     const firstChild = container.firstElementChild;
     container.insertBefore(alertContainer, firstChild);
-    
-    // Auto-dismiss after 5 seconds
+      
     setTimeout(() => {
         const bsAlert = new bootstrap.Alert(alertContainer);
         bsAlert.close();
     }, 5000);
 }
 
-// Enhanced case number input formatting
 document.addEventListener('DOMContentLoaded', function() {
     const caseNumberInput = document.getElementById('case_number');
     if (caseNumberInput) {
         caseNumberInput.addEventListener('input', function(e) {
-            // Remove non-numeric characters
+            
             let value = e.target.value.replace(/[^0-9]/g, '');
-            // Limit to reasonable length
+            
             if (value.length > 8) {
                 value = value.substring(0, 8);
             }
@@ -104,7 +96,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Search form enhancement
 document.addEventListener('DOMContentLoaded', function() {
     const searchForm = document.getElementById('searchForm');
     if (searchForm) {
@@ -113,15 +104,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.preventDefault();
                 return false;
             }
-            
-            // Show loading state
+                        
             const submitBtn = document.getElementById('searchBtn');
             if (submitBtn) {
                 const originalText = submitBtn.innerHTML;
                 submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Searching...';
                 submitBtn.disabled = true;
                 
-                // Re-enable button after 10 seconds as fallback
                 setTimeout(() => {
                     submitBtn.innerHTML = originalText;
                     submitBtn.disabled = false;
@@ -131,9 +120,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Keyboard shortcuts
 document.addEventListener('keydown', function(e) {
-    // Ctrl/Cmd + K to focus search
+
     if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
         const caseTypeSelect = document.getElementById('case_type');
@@ -142,7 +130,6 @@ document.addEventListener('keydown', function(e) {
         }
     }
     
-    // Escape to clear form
     if (e.key === 'Escape') {
         const activeElement = document.activeElement;
         if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'SELECT')) {
@@ -151,12 +138,10 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// Print functionality
 function printCaseDetails() {
     window.print();
 }
 
-// Copy case information to clipboard
 function copyCaseInfo(caseInfo) {
     navigator.clipboard.writeText(caseInfo).then(function() {
         showAlert('Case information copied to clipboard!', 'success');
@@ -165,7 +150,6 @@ function copyCaseInfo(caseInfo) {
     });
 }
 
-// Download tracking
 document.addEventListener('DOMContentLoaded', function() {
     const downloadLinks = document.querySelectorAll('a[href*="download_pdf"]');
     downloadLinks.forEach(link => {
