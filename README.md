@@ -4,7 +4,7 @@ A powerful, elegant, and developer-friendly platform to search, analyze, and vis
 
 This project lets you search real-time case information with ease, extract structured court data, handle CAPTCHAs, and generate downloadable PDFs — all in a responsive and modern UI.
 
-🎥 [Watch Demo Video]([https://drive.google.com/your-video-link](https://drive.google.com/file/d/1NobiiChwMuN5hjMmdOf0sqCMlhrfRZ6R/view?usp=sharing))
+🎥 [Watch Demo Video]=([https://drive.google.com/your-video-link](https://drive.google.com/file/d/1NobiiChwMuN5hjMmdOf0sqCMlhrfRZ6R/view?usp=sharing])
 
 ---
 
